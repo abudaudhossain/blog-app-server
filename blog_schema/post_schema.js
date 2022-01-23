@@ -3,11 +3,11 @@ const { Schema } = mongoose;
 
 const postSchema = new Schema({
     userId: {
-        type: String ,
+        type: String,
         required: true
     },
     title: {
-        type: String ,
+        type: String,
         required: true
     },
     description: {

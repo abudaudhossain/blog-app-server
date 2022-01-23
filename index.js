@@ -26,20 +26,20 @@ mongoose.connect(url, { useNewUrlParser: true })
     .catch((err) => console.log(err))
 
 
-app.get("/", (req, res) =>{
+app.get("/", (req, res) => {
     res.send("Blog..")
 })
 
 //add database post api
-app.post("/post/newPost", async (req, res) =>{
+app.post("/post/newPost", async (req, res) => {
     console.log("com: ", req.body)
     const newPost = new Post(req.body);
-    await newPost.save((err) =>{
-        if(err){
+    await newPost.save((err) => {
+        if (err) {
             res.status(404).json({
                 error: "there was a server error"
             })
-        }else{
+        } else {
             res.status(200).json({
                 message: "post was inserted successful"
             })
@@ -48,34 +48,34 @@ app.post("/post/newPost", async (req, res) =>{
 })
 
 //get all post api
-app.get("/posts", async (req, res) =>{
+app.get("/posts", async (req, res) => {
     const result = await Post.find({});
     res.send(result)
 })
 
 //get post api by id
-app.get("/post/:id", async (req, res) =>{
+app.get("/post/:id", async (req, res) => {
     const id = req.params.id;
     const result = await Post.findOne({ _id: id });
     res.send(result)
 })
 
 // get post api by post api
-app.get("/posts/:userId", async (req, res) =>{
+app.get("/posts/:userId", async (req, res) => {
     const userId = req.params.userId;
-    const result = await Post.find({userId: userId});
+    const result = await Post.find({ userId: userId });
     res.send(result);
 })
 
 //add to database comment post api
-app.post("/comment/newComment", async (req, res) =>{
+app.post("/comment/newComment", async (req, res) => {
     const newComment = new Comment(req.body);
-    await newComment.save((err) =>{
-        if(err){
+    await newComment.save((err) => {
+        if (err) {
             res.status(404).json({
                 error: "there was a server error"
             })
-        }else{
+        } else {
             res.status(200).json({
                 message: "Comment was inserted successful"
             })
@@ -83,9 +83,9 @@ app.post("/comment/newComment", async (req, res) =>{
     })
 })
 
-app.get("/post/comment/:postId", async (req, res) =>{
+app.get("/post/comment/:postId", async (req, res) => {
     const postId = req.params.postId;
-    const result = await Comment.find({postId: postId});
+    const result = await Comment.find({ postId: postId });
     res.send(result);
 })
 
