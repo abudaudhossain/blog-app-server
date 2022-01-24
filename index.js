@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require('mongoose');
 require('dotenv').config();
 const cors = require('cors');
+const getToken = require("./modules/getToken");
 
 //create model
 const postSchema = require('./blog_schema/post_schema');
@@ -16,6 +17,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json())
+
 
 //database connection with mongoose
 const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bqqvk.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -32,8 +34,9 @@ app.get("/", (req, res) => {
 
 //add database post api
 app.post("/post/newPost", async (req, res) => {
-    console.log("com: ", req.body)
-    const newPost = new Post(req.body);
+    const postInfo = req.body;
+    postInfo.postToken = getToken("PT");
+    const newPost = new Post(postInfo);
     await newPost.save((err) => {
         if (err) {
             res.status(404).json({
@@ -69,7 +72,10 @@ app.get("/posts/:userId", async (req, res) => {
 
 //add to database comment post api
 app.post("/comment/newComment", async (req, res) => {
-    const newComment = new Comment(req.body);
+    const commentData = req.body;
+    commentData.commentToken = getToken("CT");
+        console.log(commentData);
+    const newComment = new Comment(commentData);
     await newComment.save((err) => {
         if (err) {
             res.status(404).json({

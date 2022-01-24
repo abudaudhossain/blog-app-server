@@ -4,8 +4,13 @@ const commentSchema = {
     userId: {
         type: String,
         required: true
+    },  
+    commentToken: {
+        type: String,
+        required: true
     },
-    postId: {
+
+    postToken: {
         type: String,
         required: true
     },
