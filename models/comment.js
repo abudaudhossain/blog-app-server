@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 
 const commentSchema = mongoose.Schema({
-    userId: {
+    userToken: {
         type: String,
         required: true
     },
-    commentToken: {
+    token: {
         type: String,
         required: true
     },
