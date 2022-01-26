@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const postSchema = new Schema({
-    userId: {
+    userToken: {
         type: String,
         required: true
     },
@@ -18,7 +18,7 @@ const postSchema = new Schema({
         type: String,
         required: true
     },
-    tag: {
+    tags: {
         type: Array
     }
 });

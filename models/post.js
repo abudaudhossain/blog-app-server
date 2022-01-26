@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 
 const postSchema =  mongoose.Schema({
-    userId: {
+    userToken: {
         type: String,
         required: true
     },
