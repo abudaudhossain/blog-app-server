@@ -5,11 +5,13 @@ const cors = require('cors');
 const getToken = require("./modules/getToken");
 
 //create model
-const postSchema = require('./blog_schema/post_schema');
-const commentSchema = require('./blog_schema/comment_schema');
+const Post = require("./models/post");
+const Comment = require("./models/comment");
+// const postSchema = require('./blog_schema/post_schema');
+// const commentSchema = require('./blog_schema/comment_schema');
 // const commentSchema = require("./blog_schema/comment_schema");
-const Post = new mongoose.model("Post", postSchema);
-const Comment = new mongoose.model("Comment", commentSchema);
+// const Post = new mongoose.model("Post", postSchema);
+// const Comment = new mongoose.model("Comment", commentSchema);
 
 
 //initialize express app 
@@ -20,7 +22,9 @@ app.use(express.json())
 
 
 //database connection with mongoose
-const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bqqvk.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+// const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bqqvk.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+
+const url = "mongodb://localhost:27017/blog";
 
 
 mongoose.connect(url, { useNewUrlParser: true })
@@ -34,9 +38,11 @@ app.get("/", (req, res) => {
 
 //add database post api
 app.post("/post/newPost", async (req, res) => {
+
     const postInfo = req.body;
     postInfo.postToken = getToken("PT");
     const newPost = new Post(postInfo);
+    console.log(newPost);
     await newPost.save((err) => {
         if (err) {
             res.status(404).json({
@@ -52,7 +58,14 @@ app.post("/post/newPost", async (req, res) => {
 
 //get all post api
 app.get("/posts", async (req, res) => {
+// console.log(req);
     const result = await Post.find({});
+    res.send(result)
+})
+
+app.get("/posts/someTag", async (req, res) => {
+    const query = {tag:{$nin:["c++","java"]}};
+    const result = await Post.find(query);
     res.send(result)
 })
 
@@ -74,7 +87,7 @@ app.get("/posts/:userId", async (req, res) => {
 app.post("/comment/newComment", async (req, res) => {
     const commentData = req.body;
     commentData.commentToken = getToken("CT");
-        console.log(commentData);
+    // console.log(commentData);
     const newComment = new Comment(commentData);
     await newComment.save((err) => {
         if (err) {
@@ -94,6 +107,8 @@ app.get("/post/comment/:postId", async (req, res) => {
     const result = await Comment.find({ postId: postId });
     res.send(result);
 })
+
+
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
