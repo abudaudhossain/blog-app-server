@@ -6,10 +6,117 @@ const getToken = require("../modules/getToken");
 // models
 const Post = require('../models/post');
 const Comment = require("../models/comment");
+const Product = require('../models/product');
+const User = require('../models/user');
 
+const nameValidation = (name) => {
+    var re = /^[A-Za-z\s]+$/;
+    if (re.test(name))
+        return false;
+    else
+        return true;
+}
+
+const emailValidation = (e) => {
+    var filter = /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/;
+    return (String(e).search(filter) != -1)
+}
 
 router.get('/', (req, res) => {
     res.send("<h2>Hollo Blogs App Server..</h2>")
+})
+// add new user api
+router.post("/user/newUser", async (req, res) => {
+    try {
+        const name = req.body.name;
+        const email = req.body.email;
+        const password = req.body.password;
+        let proceed = true;
+
+       
+        // @validation part
+        // => validation 1: required are not empty
+
+        if (name === undefined || email === undefined || password === undefined) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Required Fields Should Not Be Empty"
+            })
+        }
+        else if (name.length === 0 || name.length === 0 || name.length === 0) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Required Fields Should Not Be Empty1"
+            })
+        }
+
+        // => validation 2: required valid name
+       if (nameValidation(name)) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Required Should  Be valid name"
+            })
+        }
+        // => validation 3: required valid email
+        if (!emailValidation(email)) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Required Should Be valid email"
+            })
+        }
+
+        // => validation 4: check user in our database
+        const exitUsers = await User.find({ email: email });
+
+        if (exitUsers.length > 0) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "User Already Registered"
+            })
+        }
+
+        // => validation 5: check password validation
+        if (password.length < 8) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Password Should Have be more then 8 charters"
+            })
+        }
+
+        // @business logic
+        if (proceed) {
+            const token = getToken("UI")
+            const newUser = new User({
+                token,
+                name,
+                email,
+                password
+            })
+            // console.log(newUser)
+            await newUser.save((err) => {
+                if (err) {
+                    res.send({
+                        type: 'error',
+                        msg: 'some thing is wrong'
+                    })
+                } else {
+                    res.send({
+                        type: 'success',
+                        msg: 'A New Post Has Been Added'
+                    })
+                }
+            });
+        }
+
+    } catch (error) {
+        console.log(error)
+    }
 })
 
 //add database post api
@@ -269,7 +376,7 @@ router.get("/posts/user/:userId", async (req, res) => {
 router.get("/post/comment/:postId", async (req, res) => {
     try {
         const userId = req.params.postId;
-        console.log("hit")
+       
         // @validated 
         //check user id in in our database
         if (userId === undefined) {
@@ -306,6 +413,59 @@ router.get("/post/comment/:postId", async (req, res) => {
 })
 
 
+
+
+// totalPrice api 
+router.post("/product/newProduct", async (req, res) => {
+    try {
+        let name = req.body.name;
+        let price = req.body.price;
+        let category = req.body.category;
+        let proceed = true;
+        // @validation part
+
+
+        // @business logic
+
+        const newProduct = new Product({
+            name,
+            price,
+            category
+        })
+        newProduct.save()
+
+        res.send({
+            type: "success",
+            message: "instar new product"
+        })
+
+    } catch (error) {
+        res.send({
+            type: "error",
+            message: "something is wrong"
+        })
+    }
+})
+
+router.get("/products", async (req, res) => {
+    const category = "fresh";
+    const query = {
+        category: category
+    }
+
+    const products = await Product.find(query);
+    let totalPrice = 0;
+    for (let i = 0; i < products.length; i++) {
+
+        totalPrice += parseInt(products[i].price);
+    }
+    res.send({
+        type: "success",
+        message: "success message",
+        totalPrice: totalPrice,
+        products: products
+    });
+})
 
 
 module.exports = router;
