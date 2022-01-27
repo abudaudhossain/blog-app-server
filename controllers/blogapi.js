@@ -8,6 +8,7 @@ const Post = require('../models/post');
 const Comment = require("../models/comment");
 const Product = require('../models/product');
 const User = require('../models/user');
+const AuthSession = require("../models/auth");
 
 const nameValidation = (name) => {
     var re = /^[A-Za-z\s]+$/;
@@ -33,7 +34,7 @@ router.post("/user/newUser", async (req, res) => {
         const password = req.body.password;
         let proceed = true;
 
-       
+
         // @validation part
         // => validation 1: required are not empty
 
@@ -44,7 +45,7 @@ router.post("/user/newUser", async (req, res) => {
                 msg: "Required Fields Should Not Be Empty"
             })
         }
-        else if (name.length === 0 || name.length === 0 || name.length === 0) {
+        else if (name.length === 0 || email.length === 0 || password.length === 0) {
             proceed = false;
             res.send({
                 type: "error",
@@ -53,7 +54,7 @@ router.post("/user/newUser", async (req, res) => {
         }
 
         // => validation 2: required valid name
-       if (nameValidation(name)) {
+        if (nameValidation(name)) {
             proceed = false;
             res.send({
                 type: "error",
@@ -116,6 +117,108 @@ router.post("/user/newUser", async (req, res) => {
 
     } catch (error) {
         console.log(error)
+    }
+})
+
+// add login api
+router.post("/user/login", async (req, res) => {
+    try {
+        const email = req.body.email;
+        const password = req.body.password;
+        const deviceToken = req.body.deviceToken;
+        let proceed = true;
+
+        if (email === undefined || password === undefined || deviceToken === undefined) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Required Fields Should Not Be Empty"
+            })
+        }
+        else if (email.length === 0 || password.length === 0 || deviceToken.length === 0) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Required Fields Should Not Be Empty1"
+            })
+        }
+
+        // => validation 3: required valid email
+        if (!emailValidation(email)) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Required Should Be valid email"
+            })
+        }
+
+        // => validation 4: check password validation
+        if (password.length < 8) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Password Should Have be more then 8 charters"
+            })
+        }
+        // => validation 5: check user in our database
+        const user = await User.find({ email: email });
+
+        if (user.length === 0) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "User not Registered"
+            })
+        }
+
+
+
+        // @business logic
+        if (user[0].password !== password) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Your Password wrong"
+            })
+        }
+
+        if (proceed) {
+
+            const token = getToken("AS");
+            const userToken = user[0].token;
+            const status = "active";
+            const newSession = new AuthSession({
+                token,
+                userToken,
+                deviceToken,
+                status
+            })
+
+            // console.log(newUser)
+            await newSession.save((err) => {
+                if (err) {
+                    res.send({
+                        type: 'error',
+                        msg: 'some thing is wrong save to db'
+                    })
+                } else {
+                    res.send({
+                        type: 'success',
+                        msg: 'User has been valid',
+                        data: {
+                            sessionToken: token,
+                            userToken,
+                            name: user[0].name,
+                            email: user[0].email
+
+                        }
+                    })
+                }
+            });
+        }
+
+    } catch (error) {
+        console.log(error);
     }
 })
 
@@ -376,7 +479,7 @@ router.get("/posts/user/:userId", async (req, res) => {
 router.get("/post/comment/:postId", async (req, res) => {
     try {
         const userId = req.params.postId;
-       
+
         // @validated 
         //check user id in in our database
         if (userId === undefined) {
