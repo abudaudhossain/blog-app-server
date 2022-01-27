@@ -52,31 +52,13 @@ app.listen(port, () => {
 
 
 /*
-app.get("/", (req, res) => {
-    res.send("Blog..")
-})
 
 
 
-//get all post api
-app.get("/posts", async (req, res) => {
-// console.log(req);
-    const result = await Post.find({});
-    res.send(result)
-})
 
-app.get("/posts/someTag", async (req, res) => {
-    const query = {tag:{$nin:["c++","java"]}};
-    const result = await Post.find(query);
-    res.send(result)
-})
 
-//get post api by id
-app.get("/post/:id", async (req, res) => {
-    const id = req.params.id;
-    const result = await Post.findOne({ _id: id });
-    res.send(result)
-})
+
+
 
 // get post api by post api
 app.get("/posts/:userId", async (req, res) => {
@@ -85,24 +67,7 @@ app.get("/posts/:userId", async (req, res) => {
     res.send(result);
 })
 
-//add to database comment post api
-app.post("/comment/newComment", async (req, res) => {
-    const commentData = req.body;
-    commentData.commentToken = getToken("CT");
-    // console.log(commentData);
-    const newComment = new Comment(commentData);
-    await newComment.save((err) => {
-        if (err) {
-            res.status(404).json({
-                error: "there was a server error"
-            })
-        } else {
-            res.status(200).json({
-                message: "Comment was inserted successful"
-            })
-        }
-    })
-})
+
 
 app.get("/post/comment/:postId", async (req, res) => {
     const postId = req.params.postId;

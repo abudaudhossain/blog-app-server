@@ -23,7 +23,7 @@ router.post("/post/newPost", async (req, res) => {
         let proceed = true;
         // @validation part
         // => validation 1: required are not empty
-
+        console.log(tags.length)
         if (userToken === undefined || title === undefined || description === undefined || tags === undefined) {
             proceed = false;
             res.send({
@@ -34,7 +34,7 @@ router.post("/post/newPost", async (req, res) => {
             proceed = false;
             res.send({
                 type: "error",
-                msg: "Required Fields Should Not Be Empty"
+                msg: "Required Fields Should Not Be Empty1"
             })
         }
 
@@ -43,6 +43,7 @@ router.post("/post/newPost", async (req, res) => {
 
         // @business logic
         if (proceed) {
+            console.log(tags)
             const newPost = new Post({
                 token: token,
                 userToken: userToken,
@@ -136,6 +137,174 @@ router.post("/post/newComment", async (req, res) => {
     }
 
 })
+
+
+//get all post api
+router.get("/posts", async (req, res) => {
+    try {
+        const result = await Post.find({});
+        if (result) {
+            res.send({
+                type: "success",
+                data: result,
+                message: "call success full"
+            })
+        } else {
+            res.send({
+                type: "error",
+                message: "something wrong please try again"
+            })
+        }
+    } catch (error) {
+        res.send({
+            type: "error",
+            message: "something thing is wrong"
+        })
+    }
+})
+
+
+//get post with out some tag
+router.get("/posts/someTag", async (req, res) => {
+    try {
+        const query = { tag: { $nin: ["c++", "java"] } };
+        const result = await Post.find(query);
+        if (result) {
+            res.send({
+                type: "success",
+                data: result,
+                message: "call success full"
+            })
+        } else {
+            res.send({
+                type: "error",
+                message: "please send valid information "
+            })
+        }
+    } catch (error) {
+        res.send({
+            type: "error",
+            message: "something thing is wrong"
+        })
+    }
+
+})
+
+
+//get post api by id
+router.get("/post/:id", async (req, res) => {
+    try {
+        const postToken = req.params.id;
+        // @validation part
+        // check user id validation in our data base
+        if (postToken === undefined) {
+            res.send({
+                type: "error",
+                msg: "Required Fields Should Not Be Empty"
+            })
+        }
+
+        const result = await Post.findOne({ token: postToken });
+        if (result) {
+            res.send({
+                type: "success",
+                data: result,
+                message: "call success full"
+            })
+        } else {
+            res.send({
+                type: "error",
+                message: "please send valid post id "
+            })
+        }
+
+    } catch (error) {
+        res.send({
+            type: "error",
+            message: "something thing is wrong"
+        })
+    }
+
+})
+
+// get post api by user id
+router.get("/posts/user/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        // @validated 
+        //check user id in in our database
+        if (userId === undefined) {
+            res.send({
+                type: "error",
+                msg: "Required Fields Should Not Be Empty"
+            })
+        }
+
+        const result = await Post.find({ userToken: userId });
+
+        if (result.length < 1) {
+            res.send({
+                type: "error",
+                message: "please send valid post id "
+            })
+        } else {
+
+            res.send({
+                type: "success",
+                data: result,
+                message: "call success full"
+            })
+        }
+
+
+    } catch (error) {
+        res.send({
+            type: "error",
+            message: "something thing is wrong"
+        })
+    }
+
+})
+// get comment api by post id
+router.get("/post/comment/:postId", async (req, res) => {
+    try {
+        const userId = req.params.postId;
+        console.log("hit")
+        // @validated 
+        //check user id in in our database
+        if (userId === undefined) {
+            res.send({
+                type: "error",
+                msg: "Required Fields Should Not Be Empty"
+            })
+        }
+
+        const result = await Comment.find({ postId: postId });
+
+        if (result.length < 1) {
+            res.send({
+                type: "error",
+                message: "please send valid post id "
+            })
+        } else {
+
+            res.send({
+                type: "success",
+                data: result,
+                message: "call success full"
+            })
+        }
+
+
+    } catch (error) {
+        res.send({
+            type: "error",
+            message: "something thing is wrong"
+        })
+    }
+
+})
+
 
 
 
