@@ -347,7 +347,6 @@ router.post("/post/newComment", async (req, res) => {
         }
         // => validation 2: check user in our database
         
-
         const userSession = await AuthSession.find({ token: sessionToken });
         if (userSession.length === 0 || userSession[0]?.status !== "active") {
             proceed = false;
@@ -365,8 +364,17 @@ router.post("/post/newComment", async (req, res) => {
             })
         }
 
-        // => validation 2: check postToken in our database
-
+        // => validation 3: check postToken in our database
+        
+        const post = await Post.find({ token: postToken});
+        // console.log(post)
+        if (post.length < 1){
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "This Post is not available"
+            })
+        }
 
 
         // @business logic
