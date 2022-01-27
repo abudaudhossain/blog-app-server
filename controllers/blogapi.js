@@ -10,6 +10,7 @@ const Product = require('../models/product');
 const User = require('../models/user');
 const AuthSession = require("../models/auth");
 
+
 const nameValidation = (name) => {
     var re = /^[A-Za-z\s]+$/;
     if (re.test(name))
@@ -23,6 +24,42 @@ const emailValidation = (e) => {
     return (String(e).search(filter) != -1)
 }
 
+
+const createSession = async (user, deviceToken) => {
+
+    const token = getToken("AS");
+    const userToken = user.token;
+    const status = "active";
+    const newSession = new AuthSession({
+        token,
+        userToken,
+        deviceToken,
+        status
+    })
+
+    // console.log(newUser)
+    await newSession.save((err) => {
+        if (err) {
+            return {
+                type: 'error',
+                msg: 'some thing is wrong save to db'
+            }
+        }
+    });
+
+    return {
+        type: 'success',
+        msg: 'User has been valid',
+        data: {
+            sessionToken: token,
+            userToken,
+            name: user.name,
+            email: user.email
+
+        }
+    }
+}
+
 router.get('/', (req, res) => {
     res.send("<h2>Hollo Blogs App Server..</h2>")
 })
@@ -32,6 +69,7 @@ router.post("/user/newUser", async (req, res) => {
         const name = req.body.name;
         const email = req.body.email;
         const password = req.body.password;
+        const deviceToken = req.headers.devicetoken;
         let proceed = true;
 
 
@@ -99,18 +137,20 @@ router.post("/user/newUser", async (req, res) => {
                 email,
                 password
             })
-            // console.log(newUser)
-            await newUser.save((err) => {
+            const user = {
+                token,
+                name,
+                email
+            };
+            await newUser.save(async (err) => {
                 if (err) {
                     res.send({
                         type: 'error',
                         msg: 'some thing is wrong'
                     })
                 } else {
-                    res.send({
-                        type: 'success',
-                        msg: 'A New Post Has Been Added'
-                    })
+                    sessionInfo = await createSession(user, deviceToken);
+                    res.send(sessionInfo)
                 }
             });
         }
@@ -125,7 +165,7 @@ router.post("/user/login", async (req, res) => {
     try {
         const email = req.body.email;
         const password = req.body.password;
-        const deviceToken = req.body.deviceToken;
+        const deviceToken = req.headers.deviceToken;
         let proceed = true;
 
         if (email === undefined || password === undefined || deviceToken === undefined) {
@@ -183,38 +223,8 @@ router.post("/user/login", async (req, res) => {
         }
 
         if (proceed) {
-
-            const token = getToken("AS");
-            const userToken = user[0].token;
-            const status = "active";
-            const newSession = new AuthSession({
-                token,
-                userToken,
-                deviceToken,
-                status
-            })
-
-            // console.log(newUser)
-            await newSession.save((err) => {
-                if (err) {
-                    res.send({
-                        type: 'error',
-                        msg: 'some thing is wrong save to db'
-                    })
-                } else {
-                    res.send({
-                        type: 'success',
-                        msg: 'User has been valid',
-                        data: {
-                            sessionToken: token,
-                            userToken,
-                            name: user[0].name,
-                            email: user[0].email
-
-                        }
-                    })
-                }
-            });
+            sessionInfo = await createSession(user[0], deviceToken);
+            res.send(sessionInfo)
         }
 
     } catch (error) {
@@ -226,21 +236,26 @@ router.post("/user/login", async (req, res) => {
 router.post("/post/newPost", async (req, res) => {
     try {
         let token = getToken("PT");
-        let userToken = req.body.userId;
+        // let userToken = req.body.userId;
         let title = req.body.title;
         let description = req.body.description;
         let tags = req.body.tags;
+        let sessionToken = req.headers.sessiontoken;
+        let deviceToken = req.headers.devicetoken;
+
         let proceed = true;
+
+        console.log(sessionToken);
         // @validation part
         // => validation 1: required are not empty
         console.log(tags.length)
-        if (userToken === undefined || title === undefined || description === undefined || tags === undefined) {
+        if (sessionToken === undefined || deviceToken === undefined || title === undefined || description === undefined || tags === undefined) {
             proceed = false;
             res.send({
                 type: "error",
                 msg: "Required Fields Should Not Be Empty"
             })
-        } else if (userToken.length === 0 || title.length === 0 || description.length === 0 || tags.length === 0) {
+        } else if (deviceToken === undefined || sessionToken.length === 0 || title.length === 0 || description.length === 0 || tags.length === 0) {
             proceed = false;
             res.send({
                 type: "error",
@@ -250,13 +265,31 @@ router.post("/post/newPost", async (req, res) => {
 
 
         // => validation 2: check user in our database
+        const userSession = await AuthSession.find({ token: sessionToken });
+
+        if (userSession.length === 0 || userSession[0]?.status !== "active") {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Please login Now"
+            })
+        }
+
+        if (userSession[0].deviceToken !== deviceToken) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "What is this Your not valid man"
+            })
+        }
+
 
         // @business logic
         if (proceed) {
-            console.log(tags)
+
             const newPost = new Post({
                 token: token,
-                userToken: userToken,
+                userToken: userSession[0].userToken,
                 title: title,
                 description: description,
                 tags: tags
@@ -290,19 +323,22 @@ router.post("/post/newPost", async (req, res) => {
 router.post("/post/newComment", async (req, res) => {
     try {
         const token = getToken("CT");
-        const userToken = req.body.userId;
         const postToken = req.body.postToken;
         const description = req.body.description;
-        const proceed = true;
+        let sessionToken = req.headers.sessiontoken;
+        let deviceToken = req.headers.devicetoken;
+
+
+        let proceed = true;
         // @validation part
         // => validation 1: required are not empty
-        if (userToken === undefined || postToken === undefined || description === undefined) {
+        if (sessionToken === undefined ||deviceToken === undefined || postToken === undefined || description === undefined) {
             proceed = false;
             res.send({
                 type: "error",
                 msg: "Required Fields Should Not Be Empty"
             })
-        } else if (userToken.length === 0 || description.length === 0 || postToken.length === 0) {
+        } else if (deviceToken.length === 0 ||sessionToken.length === 0 || description.length === 0 || postToken.length === 0) {
             proceed = false;
             res.send({
                 type: "error",
@@ -310,14 +346,34 @@ router.post("/post/newComment", async (req, res) => {
             })
         }
         // => validation 2: check user in our database
+        
+
+        const userSession = await AuthSession.find({ token: sessionToken });
+        if (userSession.length === 0 || userSession[0]?.status !== "active") {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Please login Now"
+            })
+        }
+
+        if (userSession[0].deviceToken !== deviceToken) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "What is this Your not valid man"
+            })
+        }
 
         // => validation 2: check postToken in our database
+
+
 
         // @business logic
         if (proceed) {
             const newComment = new Comment({
                 token: token,
-                userToken: userToken,
+                userToken: userSession[0].userToken,
                 postToken: postToken,
                 description: description,
             });
