@@ -585,16 +585,65 @@ router.get("/post/comment/:postId", async (req, res) => {
 // totalPrice api 
 router.post("/product/newProduct", async (req, res) => {
     try {
+        let token = getToken("PD");
         let name = req.body.name;
         let price = req.body.price;
         let category = req.body.category;
+        let sessionToken = req.headers.sessiontoken;
+        let deviceToken = req.headers.devicetoken;
+
         let proceed = true;
         // @validation part
+
+        
+        
+
+        let proceed = true;
+
+        console.log(sessionToken);
+        // @validation part
+        // => validation 1: required are not empty
+        console.log(tags.length)
+        if (sessionToken === undefined || deviceToken === undefined || name === undefined || description === undefined || category === undefined|| price === undefined) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Required Fields Should Not Be Empty"
+            })
+        } else if (deviceToken === undefined || sessionToken.length === 0 || name.length === 0 || description.length === 0 || category.length === 0) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Required Fields Should Not Be Empty1"
+            })
+        }
+
+
+        // => validation 2: check user in our database
+        const userSession = await AuthSession.find({ token: sessionToken });
+
+        if (userSession.length === 0 || userSession[0]?.status !== "active") {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "Please login Now"
+            })
+        }
+
+        if (userSession[0].deviceToken !== deviceToken) {
+            proceed = false;
+            res.send({
+                type: "error",
+                msg: "What is this Your not valid man"
+            })
+        }
+
 
 
         // @business logic
 
         const newProduct = new Product({
+            token,
             name,
             price,
             category
