@@ -39,5 +39,9 @@ module.exports = {
         });
         const posts = await AppPost.find(filter);
         return posts[0];
+    },
+    deletePost: async (filter) => {
+        await AppPost.deleteOne(filter)
+        return {};
     }
 }

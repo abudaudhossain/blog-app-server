@@ -54,4 +54,19 @@ module.exports = {
             handler(error, res)
         }
     },
+    deletePost: async (req, res) => {
+        try {
+
+
+            const result = await postService.deletePost({
+                userToken: req.body.appSetUserToken,
+                token: req.body.token
+            });
+            nativeResponse(result, "Delete successfully", res)
+
+        } catch (error) {
+            console.log(error);
+            handler(error, res)
+        }
+    },
 }

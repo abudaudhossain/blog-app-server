@@ -18,6 +18,7 @@ router.post("/login", accountAuth.login); // login validation
 
 router.post("/createPost", validUserRequestMiddleware, services.addNewPost);
 router.post("/updatePost", validUserRequestMiddleware, services.updatePost);
+router.post("/deletePost", validUserRequestMiddleware, services.deletePost);
 router.get("/myPost", validUserRequestMiddleware, services.myPost);
 router.get("/allPost", services.allPost);
 
