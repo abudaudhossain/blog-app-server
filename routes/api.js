@@ -17,6 +17,7 @@ router.post("/numberValidation", account.numberValidation) // number validation
 router.post("/login", accountAuth.login); // login validation
 
 router.post("/createPost", validUserRequestMiddleware, services.addNewPost);
+router.post("/updatePost", validUserRequestMiddleware, services.updatePost);
 router.get("/myPost", validUserRequestMiddleware, services.myPost);
 router.get("/allPost", services.allPost);
 

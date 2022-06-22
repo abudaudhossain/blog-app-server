@@ -39,4 +39,19 @@ module.exports = {
             handler(error, res)
         }
     },
+    updatePost: async (req, res) => {
+        try {
+            createPostRequestValidation(req, res);
+
+            const result = await postService.updatePost(req.body, {
+                userToken: req.body.appSetUserToken,
+                token: req.body.token
+            });
+            nativeResponse(result, "update successfully", res)
+
+        } catch (error) {
+            console.log(error);
+            handler(error, res)
+        }
+    },
 }

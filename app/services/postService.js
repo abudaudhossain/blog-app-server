@@ -4,7 +4,7 @@ const AppPost = require("../models/post")
 
 module.exports = {
     createPost: async (data) => {
-        const { title, description, category, tags } = data;
+        const { title, description, category, tags, image } = data;
         const userToken = data.appSetUserToken;
         const token = utility.getToken("POST");
 
@@ -14,7 +14,8 @@ module.exports = {
             title,
             description,
             category,
-            tags
+            tags,
+            image
         });
 
         await newPost.save();
@@ -26,5 +27,17 @@ module.exports = {
         console.log(posts);
 
         return posts;
+    },
+    updatePost: async (data, filter) => {
+        const { title, description, category, tags, image } = data;
+        await AppPost.findOneAndUpdate(filter, {
+            title,
+            description,
+            category,
+            tags,
+            image
+        });
+        const posts = await AppPost.find(filter);
+        return posts[0];
     }
 }
