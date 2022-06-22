@@ -20,5 +20,11 @@ module.exports = {
         await newPost.save();
 
         return newPost;
+    },
+    findPost: async (query) => {
+        const posts = await AppPost.find(query);
+        console.log(posts);
+
+        return posts;
     }
 }
