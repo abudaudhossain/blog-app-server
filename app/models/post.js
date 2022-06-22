@@ -3,20 +3,19 @@ const mongoose = require("mongoose");
 
 const postSchema =  mongoose.Schema({
     userToken: {
-        type: String,
-        required: true
+        type: String
     },
     token:{
-         type: String,
-        required: true
+         type: String
     },
     title: {
-        type: String,
-        required: true
+        type: String
     },
     description: {
-        type: String,
-        required: true
+        type: String
+    },
+    category: {
+        type: String
     },
     tags: {
         type: Array
