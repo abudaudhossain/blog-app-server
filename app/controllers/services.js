@@ -69,4 +69,32 @@ module.exports = {
             handler(error, res)
         }
     },
+    post: async (req, res) => {
+        try {
+            const { token } = req.params
+            console.log(token, "sldkfj;kdfh")
+            const result = await postService.findPost({
+                token
+            });
+            nativeResponse(result, "get post by token", res)
+
+        } catch (error) {
+            console.log(error);
+            handler(error, res)
+        }
+    },
+    getPostByCategory: async (req, res) => {
+        try {
+            const { categoryName } = req.params;
+            console.log(categoryName, "-----------------")
+            const result = await postService.findPost({
+                category: categoryName
+            });
+            nativeResponse(result, "get post by category", res)
+
+        } catch (error) {
+            console.log(error);
+            handler(error, res)
+        }
+    }
 }

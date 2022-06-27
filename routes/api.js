@@ -19,7 +19,10 @@ router.post("/login", accountAuth.login); // login validation
 router.post("/createPost", validUserRequestMiddleware, services.addNewPost);
 router.post("/updatePost", validUserRequestMiddleware, services.updatePost);
 router.post("/deletePost", validUserRequestMiddleware, services.deletePost);
+
 router.get("/myPost", validUserRequestMiddleware, services.myPost);
+router.get("/post/:token", validUserRequestMiddleware, services.post);
 router.get("/allPost", services.allPost);
+router.get("/category/:categoryName", services.getPostByCategory);
 
 module.exports = router;
