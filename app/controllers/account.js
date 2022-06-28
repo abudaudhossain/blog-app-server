@@ -30,8 +30,6 @@ module.exports = {
             account[0].jwtToken = getJwtToken(account[0].AccountNo, account[0].sessionToken)
             console.log("accountAuth l27 :", account[0]);
 
-
-
             nativeResponse(account[0], "😎😉Create a new account😍💋", res)
 
         } catch (error) {
